@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Dijkstra Algorithm Visualizer</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <header class="hero">
+    <h1>Dijkstra Showdown Visualizer</h1>
+    <p>
+      Compare the classic single-source Dijkstra algorithm with an improved
+      bidirectional variant commonly explored in modern routing research,
+      including work published by teams in China.
+    </p>
+  </header>
+
+  <main>
+    <section class="controls" aria-label="Algorithm controls">
+      <div class="control-group">
+        <label for="rows">Rows</label>
+        <input id="rows" type="number" min="8" max="40" value="20" />
+      </div>
+      <div class="control-group">
+        <label for="cols">Cols</label>
+        <input id="cols" type="number" min="10" max="60" value="35" />
+      </div>
+      <div class="control-group">
+        <label for="speed">Speed (ms/step)</label>
+        <input id="speed" type="range" min="5" max="150" value="20" />
+        <span id="speed-value">20</span>
+      </div>
+      <div class="control-group">
+        <label for="weightMode">Weighted Grid</label>
+        <select id="weightMode">
+          <option value="light">Light traffic</option>
+          <option value="balanced" selected>Balanced traffic</option>
+          <option value="heavy">Heavy traffic</option>
+        </select>
+      </div>
+      <div class="buttons">
+        <button id="buildGridBtn">Build Grid</button>
+        <button id="clearBtn">Clear Search</button>
+        <button id="resetBtn">Reset All</button>
+        <button id="mazeBtn">Random Walls</button>
+        <button id="weightsBtn">Random Weights</button>
+        <button id="runBtn" class="primary">Run Comparison</button>
+      </div>
+      <div class="legend">
+        <span><i class="cell source"></i> Source</span>
+        <span><i class="cell target"></i> Destination</span>
+        <span><i class="cell wall"></i> Wall</span>
+        <span><i class="cell weight"></i> Weight</span>
+        <span><i class="cell visited"></i> Visited</span>
+        <span><i class="cell path"></i> Best Path</span>
+      </div>
+      <p class="tip">
+        Click to place walls. Shift+Click to place weighted nodes. Drag source/target to move.
+      </p>
+    </section>
+
+    <section class="boards">
+      <article class="panel">
+        <h2>Classic Dijkstra (Single-Source)</h2>
+        <div id="grid-classic" class="grid" aria-label="Classic Dijkstra grid"></div>
+        <div id="metrics-classic" class="metrics"></div>
+      </article>
+      <article class="panel">
+        <h2>Improved Dijkstra (Bidirectional)</h2>
+        <div id="grid-improved" class="grid" aria-label="Improved Dijkstra grid"></div>
+        <div id="metrics-improved" class="metrics"></div>
+      </article>
+    </section>
+  </main>
+
+  <footer>
+    <p>
+      Educational simulator: compare exploration patterns, operation counts, and path costs.
+    </p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>
