@@ -12,8 +12,10 @@ const ui = {
   runBtn: document.getElementById('runBtn'),
   classicGrid: document.getElementById('grid-classic'),
   improvedGrid: document.getElementById('grid-improved'),
+  breakthroughGrid: document.getElementById('grid-breakthrough'),
   classicMetrics: document.getElementById('metrics-classic'),
-  improvedMetrics: document.getElementById('metrics-improved')
+  improvedMetrics: document.getElementById('metrics-improved'),
+  breakthroughMetrics: document.getElementById('metrics-breakthrough')
 };
 
 let state = {
@@ -57,6 +59,7 @@ function buildBoard() {
 function resetMetrics() {
   ui.classicMetrics.innerHTML = 'No run yet.';
   ui.improvedMetrics.innerHTML = 'No run yet.';
+  ui.breakthroughMetrics.innerHTML = 'No run yet.';
 }
 
 function nodeKey(r, c) {
@@ -111,6 +114,7 @@ function renderBoard(gridEl, visitedSet = new Set(), pathSet = new Set()) {
 function renderBoth() {
   makeGridElement(ui.classicGrid, 'classic');
   makeGridElement(ui.improvedGrid, 'improved');
+  makeGridElement(ui.breakthroughGrid, 'breakthrough');
 }
 
 function toggleWallOrWeight(r, c, useWeight) {
@@ -134,6 +138,7 @@ function randomWeight() {
 function clearSearchVisuals() {
   renderBoard(ui.classicGrid);
   renderBoard(ui.improvedGrid);
+  renderBoard(ui.breakthroughGrid);
 }
 
 function resetAll() {
@@ -358,6 +363,79 @@ function runBidirectionalDijkstra() {
   };
 }
 
+
+
+function popCluster(frontierSet, dist, size) {
+  const sorted = [...frontierSet].sort((a, b) => (dist.get(a) ?? Infinity) - (dist.get(b) ?? Infinity));
+  return sorted.slice(0, Math.max(1, size));
+}
+
+function runClusteredFrontierDijkstra() {
+  const start = nodeKey(state.source.r, state.source.c);
+  const goal = nodeKey(state.target.r, state.target.c);
+  const dist = new Map([[start, 0]]);
+  const prev = new Map();
+  const settled = new Set();
+  const frontier = new Set([start]);
+  const visitOrder = [];
+  let relaxOps = 0;
+
+  const n = Math.max(2, state.rows * state.cols);
+  const clusterSize = Math.max(2, Math.ceil(Math.pow(Math.log2(n), 2 / 3)));
+
+  while (frontier.size) {
+    const cluster = popCluster(frontier, dist, Math.min(clusterSize, frontier.size));
+
+    for (const cur of cluster) {
+      frontier.delete(cur);
+      if (settled.has(cur)) continue;
+
+      settled.add(cur);
+      visitOrder.push(cur);
+      if (cur === goal) break;
+
+      const [r, c] = cur.split(',').map(Number);
+      for (const nNode of neighbors(r, c)) {
+        const nk = nodeKey(nNode.r, nNode.c);
+        if (settled.has(nk)) continue;
+        const nd = (dist.get(cur) ?? Infinity) + nNode.weight;
+        relaxOps++;
+        if (nd < (dist.get(nk) ?? Infinity)) {
+          dist.set(nk, nd);
+          prev.set(nk, cur);
+          frontier.add(nk);
+        }
+      }
+    }
+
+    if (settled.has(goal)) break;
+
+    if (frontier.size > 2 * clusterSize) {
+      const keep = popCluster(frontier, dist, 2 * clusterSize);
+      frontier.clear();
+      for (const key of keep) frontier.add(key);
+    }
+  }
+
+  const path = [];
+  let walk = goal;
+  if (prev.has(goal) || goal === start) {
+    while (walk) {
+      path.push(walk);
+      walk = prev.get(walk);
+    }
+    path.reverse();
+  }
+
+  return {
+    visited: visitOrder,
+    path,
+    visitedCount: settled.size,
+    pathCost: dist.get(goal) ?? Infinity,
+    relaxOps
+  };
+}
+
 function delay(ms) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -399,10 +477,12 @@ async function runComparison() {
   clearSearchVisuals();
   const classic = runClassicDijkstra(cloneBoard());
   const improved = runBidirectionalDijkstra(cloneBoard());
+  const breakthrough = runClusteredFrontierDijkstra(cloneBoard());
 
   await Promise.all([
     animateResult(ui.classicGrid, classic, ui.classicMetrics),
-    animateResult(ui.improvedGrid, improved, ui.improvedMetrics)
+    animateResult(ui.improvedGrid, improved, ui.improvedMetrics),
+    animateResult(ui.breakthroughGrid, breakthrough, ui.breakthroughMetrics)
   ]);
 
   state.running = false;
