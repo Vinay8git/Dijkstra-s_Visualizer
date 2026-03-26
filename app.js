@@ -23,6 +23,8 @@ let state = {
   target: { r: 10, c: 27 },
   board: [],
   painting: false,
+  paintMode: null,
+  lastPaintedKey: null,
   dragging: null,
   running: false
 };
@@ -188,6 +190,16 @@ function popMin(open, dist) {
   return open.splice(bestIdx, 1)[0];
 }
 
+function peekMinDistance(open, dist) {
+  if (!open.length) return Infinity;
+  let best = Infinity;
+  for (const key of open) {
+    const d = dist.get(key) ?? Infinity;
+    if (d < best) best = d;
+  }
+  return best;
+}
+
 function runClassicDijkstra() {
   const start = nodeKey(state.source.r, state.source.c);
   const goal = nodeKey(state.target.r, state.target.c);
@@ -240,6 +252,15 @@ function runClassicDijkstra() {
 function runBidirectionalDijkstra() {
   const start = nodeKey(state.source.r, state.source.c);
   const goal = nodeKey(state.target.r, state.target.c);
+  if (start === goal) {
+    return {
+      visited: [start],
+      path: [start],
+      visitedCount: 1,
+      pathCost: 0,
+      relaxOps: 0
+    };
+  }
 
   const distF = new Map([[start, 0]]);
   const distB = new Map([[goal, 0]]);
@@ -303,8 +324,8 @@ function runBidirectionalDijkstra() {
       }
     }
 
-    const frontierF = distF.get(openF[0] ?? start) ?? Infinity;
-    const frontierB = distB.get(openB[0] ?? goal) ?? Infinity;
+    const frontierF = peekMinDistance(openF, distF);
+    const frontierB = peekMinDistance(openB, distB);
     if (frontierF + frontierB >= best) break;
   }
 
@@ -402,7 +423,13 @@ function onPointerDown(event) {
     state.dragging = 'target';
   } else {
     state.painting = true;
-    toggleWallOrWeight(r, c, event.shiftKey);
+    const useWeight = event.shiftKey;
+    const node = state.board[r][c];
+    state.paintMode = {
+      useWeight,
+      value: useWeight ? !(node.weight > 1) : !node.wall
+    };
+    applyPaint(r, c);
     clearSearchVisuals();
   }
 }
@@ -424,14 +451,36 @@ function onPointerMove(event) {
       clearSearchVisuals();
     }
   } else if (state.painting) {
-    toggleWallOrWeight(r, c, event.shiftKey);
+    applyPaint(r, c);
     clearSearchVisuals();
   }
 }
 
 function onPointerUp() {
   state.painting = false;
+  state.paintMode = null;
+  state.lastPaintedKey = null;
   state.dragging = null;
+}
+
+function applyPaint(r, c) {
+  if (isSource(r, c) || isTarget(r, c)) return;
+  const key = nodeKey(r, c);
+  if (state.lastPaintedKey === key) return;
+  state.lastPaintedKey = key;
+
+  if (!state.paintMode) {
+    toggleWallOrWeight(r, c, false);
+    return;
+  }
+
+  const n = state.board[r][c];
+  if (state.paintMode.useWeight) {
+    n.weight = state.paintMode.value ? randomWeight() : 1;
+  } else {
+    n.wall = state.paintMode.value;
+    if (n.wall) n.weight = 1;
+  }
 }
 
 ui.speed.addEventListener('input', () => {
