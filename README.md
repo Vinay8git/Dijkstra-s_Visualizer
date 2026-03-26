@@ -1,15 +1,16 @@
-# Dijkstra's Visualizer (Classic vs Improved)
+# Dijkstra's Visualizer (Classic vs Bidirectional vs Clustered Frontier)
 
 An interactive website to compare:
 
 - **Classic Dijkstra (single-source shortest path)**
-- **Improved Dijkstra (bidirectional search variant)**
+- **Bidirectional Dijkstra**
+- **Clustered Frontier Dijkstra (paper-inspired variant)**
 
 The UI is **cell/matrix based** so users can draw obstacles, add weighted nodes (traffic), move source/destination, and control animation speed.
 
 ## Features
 
-- Side-by-side simulation on the same grid
+- Side-by-side simulation on the same grid for 3 algorithms
 - Source and destination drag-and-drop
 - Wall drawing with mouse
 - Weighted cells with `Shift + Click`
@@ -37,10 +38,10 @@ No build step is required.
 - **Click** empty cells: toggle wall
 - **Shift + Click** empty cells: toggle weighted node
 - **Drag** source or destination to move
-- **Run Comparison**: animate both algorithms simultaneously
+- **Run Comparison**: animate all algorithms simultaneously
 - **Clear Search**: clear visited/path coloring only
 - **Reset All**: remove walls and weights
 
 ## Notes
 
-The “improved” variant implemented here is **bidirectional Dijkstra**, a practical speedup strategy that can reduce explored nodes on many maps while preserving shortest-path optimality for non-negative weights.
+The clustered-frontier variant is an educational implementation inspired by the high-level ideas from the 2025 “Breaking the Sorting Barrier” work (batch frontier processing + partial ordering). It is **not** a full reproduction of the paper’s full theoretical construction/proof.

@@ -10,9 +10,8 @@
   <header class="hero">
     <h1>Dijkstra Showdown Visualizer</h1>
     <p>
-      Compare the classic single-source Dijkstra algorithm with an improved
-      bidirectional variant commonly explored in modern routing research,
-      including work published by teams in China.
+      Compare three shortest-path strategies: classic Dijkstra, bidirectional Dijkstra,
+      and a sorting-barrier-inspired clustered frontier variant.
     </p>
   </header>
 
@@ -67,9 +66,14 @@
         <div id="metrics-classic" class="metrics"></div>
       </article>
       <article class="panel">
-        <h2>Improved Dijkstra (Bidirectional)</h2>
-        <div id="grid-improved" class="grid" aria-label="Improved Dijkstra grid"></div>
+        <h2>Bidirectional Dijkstra</h2>
+        <div id="grid-improved" class="grid" aria-label="Bidirectional Dijkstra grid"></div>
         <div id="metrics-improved" class="metrics"></div>
+      </article>
+      <article class="panel">
+        <h2>Clustered Frontier Dijkstra (Paper-Inspired)</h2>
+        <div id="grid-breakthrough" class="grid" aria-label="Clustered frontier Dijkstra grid"></div>
+        <div id="metrics-breakthrough" class="metrics"></div>
       </article>
     </section>
   </main>
